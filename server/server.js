@@ -8,15 +8,19 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS setup (allow React on 3000 & 5173)
-app.use(cors({
-  origin: [
-    "http://localhost:3000", 
-    "http://localhost:5173"   // Vite default port
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+// ✅ CORS setup (allow local dev + deployed frontend)
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",              // Vite default port
+      "https://bank-app-1-ekqb.onrender.com" // ✅ Deployed frontend
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 // ✅ Middleware
 app.use(express.json());
@@ -39,9 +43,6 @@ app.use("/api/users", historyRoutes);
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin", adminEmployeeRoutes);
 app.use("/api/employee", employeeRoutes);
-
-
-
 
 // MongoDB connection
 mongoose
