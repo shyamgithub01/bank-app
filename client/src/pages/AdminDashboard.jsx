@@ -12,11 +12,11 @@ function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE_URL = "http://localhost:5000/api/admin";
+  // Deployed backend
+  const API_BASE_URL = "https://bank-app-5yhj.onrender.com/api/admin";
   const token = localStorage.getItem("token");
   const adminData = JSON.parse(localStorage.getItem("user"));
 
-  // 🔹 Fetch employees
   const fetchEmployees = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/employees`, {
@@ -26,30 +26,34 @@ function AdminDashboard() {
       if (res.ok) {
         setEmployees(data.employees);
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Failed to fetch employees");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error fetching employees");
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      setMessage(`Error fetching employees: ${error?.message || "Unknown error"}`);
     }
   };
 
   useEffect(() => {
     fetchEmployees();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🔹 Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Create employee
   const handleCreate = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/create-employee`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
@@ -58,16 +62,17 @@ function AdminDashboard() {
         setFormData({ name: "", phone: "", aadhaar: "", password: "" });
         fetchEmployees();
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Failed to create employee");
+        if (res.status === 401) handleLogout();
       }
-    } catch {
-      setMessage("Error creating employee");
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      setMessage(`Error creating employee: ${error?.message || "Unknown error"}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Delete employee
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
     try {
@@ -80,14 +85,15 @@ function AdminDashboard() {
         setMessage("✅ Employee deleted successfully!");
         fetchEmployees();
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Failed to delete employee");
+        if (res.status === 401) handleLogout();
       }
-    } catch {
-      setMessage("Error deleting employee");
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      setMessage(`Error deleting employee: ${error?.message || "Unknown error"}`);
     }
   };
 
-  // 🔹 Handle logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -96,7 +102,6 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
@@ -113,15 +118,17 @@ function AdminDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Message */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes("✅") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          <div
+            className={`mb-6 p-4 rounded-lg ${
+              message.includes("✅") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}
+          >
             {message}
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Create Employee Form */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">Create New Employee</h2>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -183,7 +190,6 @@ function AdminDashboard() {
             </form>
           </div>
 
-          {/* Employees List */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">Employees List</h2>
@@ -191,7 +197,7 @@ function AdminDashboard() {
                 {employees.length} employees
               </span>
             </div>
-            
+
             {employees.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No employees found</p>

@@ -17,7 +17,8 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE_URL = 'http://localhost:5000';
+  // ⬇️ Updated base URL
+  const API_BASE_URL = 'https://bank-app-5yhj.onrender.com';
 
   const handleChange = (e) => {
     setFormData({
@@ -81,8 +82,8 @@ const Login = () => {
       } else {
         setError(data.message || 'Authentication failed');
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Login/Register error:", error);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);

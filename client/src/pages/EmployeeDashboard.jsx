@@ -6,10 +6,9 @@ function EmployeeDashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
 
-  const API_BASE_URL = "http://localhost:5000/api/employee";
+  const API_BASE_URL = "https://bank-app-5yhj.onrender.com/api/employee";
   const token = localStorage.getItem("token");
 
-  // Fetch all users
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/users`, {
@@ -19,14 +18,15 @@ function EmployeeDashboard() {
       if (res.ok) {
         setUsers(data.users);
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Failed to fetch users");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error fetching users");
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setMessage(`Error fetching users: ${error?.message || "Unknown error"}`);
     }
   };
 
-  // Fetch single user by ID
   const fetchUserDetails = async (id) => {
     try {
       const res = await fetch(`${API_BASE_URL}/user/${id}`, {
@@ -36,15 +36,18 @@ function EmployeeDashboard() {
       if (res.ok) {
         setSelectedUser(data.user);
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Failed to fetch user details");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error fetching user details");
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      setMessage(`Error fetching user details: ${error?.message || "Unknown error"}`);
     }
   };
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
@@ -55,7 +58,6 @@ function EmployeeDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">👨‍💼 Employee Dashboard</h1>
         <button
@@ -66,7 +68,6 @@ function EmployeeDashboard() {
         </button>
       </div>
 
-      {/* Users List */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4">All Users</h2>
         {users.length === 0 ? (
@@ -108,7 +109,6 @@ function EmployeeDashboard() {
         )}
       </div>
 
-      {/* User Details Modal/Box */}
       {selectedUser && (
         <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">User Details</h2>

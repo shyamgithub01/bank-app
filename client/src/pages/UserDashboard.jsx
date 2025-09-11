@@ -10,7 +10,8 @@ function UserDashboard() {
   const [showTransactions, setShowTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState("deposit");
 
-  const API_BASE_URL = "http://localhost:5000/api/users";
+  // ⬇️ Use deployed backend
+  const API_BASE_URL = "https://bank-app-5yhj.onrender.com/api/users";
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -25,9 +26,11 @@ function UserDashboard() {
         setTransactions(data.transactions || []);
       } else {
         setMessage(data.message || "Failed to load history");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error fetching history");
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      setMessage(`Error fetching history: ${error?.message || "Unknown error"}`);
     }
   };
 
@@ -39,6 +42,7 @@ function UserDashboard() {
   useEffect(() => {
     fetchBalance();
     fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 🔹 Deposit
@@ -59,10 +63,12 @@ function UserDashboard() {
         fetchHistory();
         setAmount("");
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Deposit failed");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error during deposit");
+    } catch (error) {
+      console.error("Error during deposit:", error);
+      setMessage(`Error during deposit: ${error?.message || "Unknown error"}`);
     }
   };
 
@@ -84,10 +90,12 @@ function UserDashboard() {
         fetchHistory();
         setAmount("");
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Withdrawal failed");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error during withdrawal");
+    } catch (error) {
+      console.error("Error during withdrawal:", error);
+      setMessage(`Error during withdrawal: ${error?.message || "Unknown error"}`);
     }
   };
 
@@ -113,10 +121,12 @@ function UserDashboard() {
         setAmount("");
         setRecipientPhone("");
       } else {
-        setMessage(data.message);
+        setMessage(data.message || "Transfer failed");
+        if (res.status === 401) handleLogout();
       }
-    } catch (err) {
-      setMessage("Error during transfer");
+    } catch (error) {
+      console.error("Error during transfer:", error);
+      setMessage(`Error during transfer: ${error?.message || "Unknown error"}`);
     }
   };
 
@@ -199,9 +209,7 @@ function UserDashboard() {
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                      ₹
-                    </span>
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
                     <input
                       type="number"
                       placeholder="Enter amount"
@@ -228,9 +236,7 @@ function UserDashboard() {
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                      ₹
-                    </span>
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
                     <input
                       type="number"
                       placeholder="Enter amount"
@@ -267,9 +273,7 @@ function UserDashboard() {
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                      ₹
-                    </span>
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
                     <input
                       type="number"
                       placeholder="Enter amount"
@@ -302,7 +306,7 @@ function UserDashboard() {
 
         {/* Transaction History */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div 
+          <div
             className="flex justify-between items-center p-6 cursor-pointer"
             onClick={() => setShowTransactions(!showTransactions)}
           >
@@ -311,10 +315,10 @@ function UserDashboard() {
               <span className="text-sm text-gray-600 mr-2">
                 {showTransactions ? "Click to collapse" : "Click to expand"}
               </span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className={`h-5 w-5 text-gray-600 transform transition-transform ${showTransactions ? "rotate-180" : ""}`} 
-                viewBox="0 0 20 20" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-5 w-5 text-gray-600 transform transition-transform ${showTransactions ? "rotate-180" : ""}`}
+                viewBox="0 0 20 20"
                 fill="currentColor"
               >
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -334,11 +338,15 @@ function UserDashboard() {
                     <div key={tx._id} className="p-6 hover:bg-gray-50 transition-colors">
                       <div className="flex justify-between items-start">
                         <div className="flex items-start">
-                          <div className={`p-3 rounded-full mr-4 ${
-                            tx.type === "deposit" ? "bg-green-100 text-green-600" : 
-                            tx.type === "withdraw" ? "bg-red-100 text-red-600" : 
-                            "bg-blue-100 text-blue-600"
-                          }`}>
+                          <div
+                            className={`p-3 rounded-full mr-4 ${
+                              tx.type === "deposit"
+                                ? "bg-green-100 text-green-600"
+                                : tx.type === "withdraw"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-blue-100 text-blue-600"
+                            }`}
+                          >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               {tx.type === "deposit" ? (
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -362,16 +370,22 @@ function UserDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-semibold ${
-                            tx.type === "deposit" ? "text-green-600" : 
-                            tx.type === "withdraw" ? "text-red-600" : 
-                            "text-blue-600"
-                          }`}>
+                          <p
+                            className={`font-semibold ${
+                              tx.type === "deposit"
+                                ? "text-green-600"
+                                : tx.type === "withdraw"
+                                ? "text-red-600"
+                                : "text-blue-600"
+                            }`}
+                          >
                             {tx.type === "deposit" ? "+" : "-"}₹{tx.amount}
                           </p>
-                          <p className={`text-sm ${
-                            tx.status === "success" ? "text-green-600" : "text-red-600"
-                          }`}>
+                          <p
+                            className={`text-sm ${
+                              tx.status === "success" ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
                             {tx.status}
                           </p>
                         </div>
