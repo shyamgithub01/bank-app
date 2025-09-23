@@ -58,7 +58,7 @@ function AdminDashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage("✅ Employee created successfully!");
+        setMessage("✅ Employee  created successfully!");
         setFormData({ name: "", phone: "", aadhaar: "", password: "" });
         fetchEmployees();
       } else {
